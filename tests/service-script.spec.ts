@@ -84,6 +84,13 @@ it('takes no `dsh plugin` command of the profile for its service', async () => {
     `${service} node node /opt/my tools/dsh --profile superagent --no-open`)
   expect(await status('superagent')).toMatchObject({ pids: [service] })
 })
+it('finds the service when `ps` reports it under its main thread name', async () => {
+  const pid = sleeper()
+  // `ps -o ucomm=` names a multi-threaded Node.js process after its main thread, so the executable `args` starts must count.
+  processes(`${pid} MainThread node /opt/my tools/dsh --profile superagent --no-open`,
+    `${sleeper()} MainThread /usr/bin/sleep 60`)
+  expect(await status('superagent')).toMatchObject({ pids: [pid] })
+})
 it('records the service PID at start, and still refuses a second instance the scan finds', async () => {
   const url = await answering()
   const pid = sleeper()
